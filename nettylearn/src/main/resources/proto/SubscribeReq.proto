@@ -1,0 +1,9 @@
+option java_package = "com.gaojiancheng.netty_learn.proto";
+option java_outer_classname = "SubscribeReq";
+
+message SubscribeReq{
+	required int32 subReqID = 1;
+	required string userName = 2;
+	required string productName = 3;
+	repeated string address = 4;
+}
