@@ -2,7 +2,6 @@ package com.gaojiancheng.netty_learn.protobuf;
 
 import com.gaojiancheng.netty_learn.proto.SubscribeReq;
 import com.gaojiancheng.netty_learn.proto.SubscribeResp;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
