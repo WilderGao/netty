@@ -3,10 +3,9 @@ package com.gaojiancheng.netty_learn.http_netty;
 import com.sun.org.apache.regexp.internal.RE;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -71,8 +70,44 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 
         long fileLength = randomAccessFile.length();
         HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1 , HttpResponseStatus.OK);
-        
+        HttpUtil.setContentLength(response , fileLength);
         setContentTypeHeader(response , file);
+
+        if (HttpUtil.isKeepAlive(fullHttpRequest)){
+            response.headers().set(HttpHeaderNames.CONNECTION
+            , HttpHeaderValues.KEEP_ALIVE);
+        }
+
+        channelHandlerContext.write(response);
+        ChannelFuture sendFileFuture = channelHandlerContext.write(new ChunkedFile(
+                randomAccessFile , 0 , fileLength , 8192) ,
+                channelHandlerContext.newProgressivePromise());
+        sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
+            @Override
+            public void operationProgressed(ChannelProgressiveFuture channelProgressiveFuture, long progress, long total) throws Exception {
+                if (total < 0){
+                    System.err.println("Transfer progress "+ progress);
+                }else {
+                    System.err.println("Transfer progress "+ progress+"/"+total);
+                }
+            }
+
+            @Override
+            public void operationComplete(ChannelProgressiveFuture channelProgressiveFuture) throws Exception {
+                System.out.println("Transfer complete......");
+            }
+        });
+
+        ChannelFuture lastContentFuture = channelHandlerContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        if (HttpUtil.isKeepAlive(fullHttpRequest))
+            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        if (ctx.channel().isActive())
+            sendError(ctx , HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**

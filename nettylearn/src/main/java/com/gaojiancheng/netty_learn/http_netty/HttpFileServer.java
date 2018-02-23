@@ -18,7 +18,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  * @Discription：
  */
 public class HttpFileServer {
-    private String DEFAULT_URL = "/src/main/java/com/gaojiancheng/netty_learn/";
+    private static String DEFAULT_URL = "/src/main/java/com/gaojiancheng/netty_learn/";
 
     public void run(final int port , final String url){
         EventLoopGroup workGroup = new NioEventLoopGroup();
@@ -27,7 +27,7 @@ public class HttpFileServer {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(workGroup, bossGroup)
                     .channel(NioServerSocketChannel.class)
-                    .handler(new ChannelInitializer<SocketChannel>() {
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline().addLast("http-encoder", new HttpRequestEncoder())
@@ -47,5 +47,22 @@ public class HttpFileServer {
             bossGroup.shutdownGracefully();
         }
 
+    }
+
+    public static void main(String[] args)throws Exception {
+        int port = 8888;
+        if(args.length > 0)
+        {
+            try{
+                port = Integer.parseInt(args[0]);
+            }catch(NumberFormatException e){
+                port = 8080;
+            }
+        }
+
+        String url = DEFAULT_URL;
+        if(args.length > 1)
+            url = args[1];
+        new HttpFileServer().run(port, url);
     }
 }
