@@ -74,8 +74,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
         setContentTypeHeader(response , file);
 
         if (HttpUtil.isKeepAlive(fullHttpRequest)){
-            response.headers().set(HttpHeaderNames.CONNECTION
-            , HttpHeaderValues.KEEP_ALIVE);
+            response.headers().set(HttpHeaderNames.CONNECTION , HttpHeaderValues.KEEP_ALIVE);
         }
 
         channelHandlerContext.write(response);

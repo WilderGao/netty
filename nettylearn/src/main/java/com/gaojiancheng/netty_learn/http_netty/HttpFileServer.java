@@ -39,7 +39,7 @@ public class HttpFileServer {
                     });
             ChannelFuture future = bootstrap.bind("localhost" , port).sync();
             System.out.println("HTTP 文件服务器启动，地址为："+"http://localhost:"+port);
-            future.channel().close().sync();
+            future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }finally {

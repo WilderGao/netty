@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/netty.iml" filepath="$PROJECT_DIR$/.idea/netty.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nettylearn/netty_learn.iml" filepath="$PROJECT_DIR$/nettylearn/netty_learn.iml" />
       <module fileurl="file://$PROJECT_DIR$/nettylearn/nettylearn.iml" filepath="$PROJECT_DIR$/nettylearn/nettylearn.iml" />
     </modules>
   </component>
