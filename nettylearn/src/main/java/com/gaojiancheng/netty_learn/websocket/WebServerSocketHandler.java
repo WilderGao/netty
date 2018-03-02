@@ -88,9 +88,10 @@ public class WebServerSocketHandler extends SimpleChannelInboundHandler<Object> 
             return;
         }
 
-        //判断是否是ping消息
+        //判断是否是心跳消息
         if (frame instanceof PingWebSocketFrame){
             ctx.channel().write(
+                    //客户端发送ping消息则要返回pong消息，做心跳测试
                     new PongWebSocketFrame(frame.content().retain()));
             return;
         }
