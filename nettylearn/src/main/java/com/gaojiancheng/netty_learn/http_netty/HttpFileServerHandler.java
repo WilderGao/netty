@@ -103,7 +103,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
         });
 
         ChannelFuture lastContentFuture = channelHandlerContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if (HttpUtil.isKeepAlive(fullHttpRequest)) {
+        if (!HttpUtil.isKeepAlive(fullHttpRequest)) {
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);
         }
     }
