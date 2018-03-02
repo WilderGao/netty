@@ -7,9 +7,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpRequestEncoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
@@ -18,7 +16,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  * @Discription：
  */
 public class HttpFileServer {
-    private static String DEFAULT_URL = "/src/main/java/com/gaojiancheng/netty_learn/";
+    private static String DEFAULT_URL = "/nettylearn/src/main/java/com/gaojiancheng/netty_learn/";
 
     public void run(final int port , final String url){
         EventLoopGroup workGroup = new NioEventLoopGroup();
@@ -30,15 +28,16 @@ public class HttpFileServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast("http-encoder", new HttpRequestEncoder())
+                            socketChannel.pipeline()
                                     .addLast("http-decoder", new HttpRequestDecoder())
-                                    .addLast("file-handler", new HttpFileServerHandler(url))
+                                    .addLast("http-aggregator", new HttpObjectAggregator(65536))
+                                    .addLast("http-encoder", new HttpResponseEncoder())
                                     .addLast("chunk-handler", new ChunkedWriteHandler())
-                                    .addLast("http-aggregator", new HttpObjectAggregator(65536));
+                                    .addLast("file-handler", new HttpFileServerHandler(url));
                         }
                     });
             ChannelFuture future = bootstrap.bind("localhost" , port).sync();
-            System.out.println("HTTP 文件服务器启动，地址为："+"http://localhost:"+port);
+            System.out.println("HTTP 文件服务器启动，地址为：http://localhost:"+port+url);
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -59,10 +58,10 @@ public class HttpFileServer {
                 port = 8080;
             }
         }
-
         String url = DEFAULT_URL;
-        if(args.length > 1)
+        if(args.length > 1) {
             url = args[1];
+        }
         new HttpFileServer().run(port, url);
     }
 }

@@ -7,6 +7,8 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
@@ -21,6 +23,7 @@ import java.util.regex.Pattern;
  * @Discription：
  */
 public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+    private Logger logger = LoggerFactory.getLogger(HttpFileServerHandler.class);
     private String url;
     private static final Pattern ALLOWED_FILE_NAME = Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\\\.]*");
     private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
@@ -51,6 +54,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
             sendError(channelHandlerContext , HttpResponseStatus.NOT_FOUND);
             return;
         }
+        //如果这是一个目录
         if (file.isDirectory()){
             if (uri.endsWith("/")){
                 sendListing(channelHandlerContext , file);
@@ -65,8 +69,9 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
             return;
         }
 
-        RandomAccessFile randomAccessFile = null;
-        randomAccessFile = new RandomAccessFile(file , "r");
+        //下面是文件的操作情况
+        logger.info("=======点击了一个文件=======");
+        RandomAccessFile randomAccessFile  = new RandomAccessFile(file , "r");
 
         long fileLength = randomAccessFile.length();
         HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1 , HttpResponseStatus.OK);
@@ -98,8 +103,9 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
         });
 
         ChannelFuture lastContentFuture = channelHandlerContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if (HttpUtil.isKeepAlive(fullHttpRequest))
+        if (HttpUtil.isKeepAlive(fullHttpRequest)) {
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+        }
     }
 
     @Override
@@ -117,6 +123,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
     private String sanitizeUri(String uri){
         try {
             uri = URLDecoder.decode(uri , "UTF-8");
+
         } catch (UnsupportedEncodingException e) {
             System.out.println("===== utf-8 解码URL 出错 =====");
             try {
@@ -126,17 +133,15 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
                 throw new Error();
             }
         }
-        System.out.println("uri 打印结果："+uri);
-        System.out.println("url 打印结果："+url);
-        if (!uri.startsWith(url))
-            return null;
-        if (!uri.startsWith("/"))
-            return null;
+        if (!uri.startsWith(url)){ return null;}
+        if (!uri.startsWith("/")) { return null; }
         uri = uri.replace('/' , File.separatorChar);
         if (uri.contains(File.separator + '.')|| uri.contains('.' + File.separator)
-                || uri.startsWith(".") || uri.endsWith(".") || INSECURE_URI.matcher(uri).matches())
+                || uri.startsWith(".") || uri.endsWith(".") || INSECURE_URI.matcher(uri).matches()) {
             return null;
-        return System.getProperty("user.dir")+File.separator + uri;
+        }
+        //返回在本地的路径
+        return System.getProperty("user.dir") + uri;
     }
 
 

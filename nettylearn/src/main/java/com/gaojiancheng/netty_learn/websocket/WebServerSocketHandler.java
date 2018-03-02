@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 import java.util.Date;
 
@@ -64,6 +65,7 @@ public class WebServerSocketHandler extends SimpleChannelInboundHandler<Object> 
         //构造握手响应返回
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
                 "ws://localhost:8080/webSocket",null,false);
+        //建立握手请求
         handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null){
             //说明这个浏览器不支持webSocket
@@ -110,7 +112,7 @@ public class WebServerSocketHandler extends SimpleChannelInboundHandler<Object> 
     private static void sendHttpResponse(ChannelHandlerContext ctx ,
                                          FullHttpRequest req , FullHttpResponse res){
         //状态不是200证明是不正常的HTTP请求
-        if (res.getStatus().code() != 200){
+        if (res.getStatus().code() != HttpStatus.OK.value()){
             ByteBuf buf = Unpooled.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8);
             res.content().writeBytes(buf);
             buf.release();
