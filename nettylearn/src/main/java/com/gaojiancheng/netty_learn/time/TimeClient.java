@@ -12,7 +12,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 /**
  * @author:Wilder Gao
  * @time:2017/12/12
- * @Discription：
+ * @Discription：1、首先
  */
 public class TimeClient {
 

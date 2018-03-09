@@ -44,7 +44,7 @@ public class WebSocketServer {
         }finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-        }
+        } 
     }
 
     public static void main(String[] args) {
